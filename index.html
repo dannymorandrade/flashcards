@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplicación de Flashcards</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body, html, #app {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+        .flashcard-container {
+            width: 100%;
+            height: 16rem;
+            max-width: 600px;
+            perspective: 1000px;
+        }
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.7s;
+        }
+        .flashcard-inner.flipped {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+        }
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+        .flashcard-navigation button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body class="bg-teal-50 font-sans h-screen flex items-center justify-center">
+    <div id="app" class="w-full h-full md:w-3/4 lg:w-1/2 md:h-3/4 bg-slate-100 rounded-2xl shadow-2xl overflow-hidden relative">
+        <div class="absolute top-0 left-0 w-full h-2 bg-teal-200"></div>
+        <div id="content" class="w-full h-full p-4">
+            </div>
+    </div>
+
+    <script>
+        const app = document.getElementById('app');
+        const content = document.getElementById('content');
+        let state = {
+            screen: 'setup',
+            topic: '',
+            language: 'English',
+            cards: [],
+            currentCardIndex: 0,
+            isFlipped: false,
+            isLoading: false,
+            studiedCount: 0,
+            error: null,
+            isFetchingMore: false,
+            apiKey: ""
+        };
+
+        const icons = {
+            SpeakerIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>`,
+            HomeIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>`,
+            ArrowLeftIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>`,
+            ArrowRightIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>`
+        };
+
+        const render = () => {
+            content.innerHTML = '';
+            if (state.screen === 'setup') {
+                renderSetupScreen();
+            } else if (state.screen === 'flashcards') {
+                renderFlashcardScreen();
+            }
+        };
+
+        const renderSetupScreen = () => {
+            content.innerHTML = `
+                <div class="w-full max-w-md mx-auto flex flex-col justify-center items-center h-full p-4">
+                    <h1 class="text-3xl font-bold text-gray-700 mb-4 text-center">Crea tus Flashcards</h1>
+                    <p class="text-gray-600 mb-8 text-center">Ingresa un tema y elige un idioma para empezar a aprender.</p>
+                    <form id="setup-form" class="w-full">
+                        <div class="mb-6">
+                            <label for="topic" class="block text-gray-700 text-sm font-bold mb-2">Ingresa el tema</label>
+                            <input id="topic" type="text" value="${state.topic}" placeholder="Ej: frases para viajar, animales..." class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                        </div>
+                        <div class="mb-8">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Elige el idioma</label>
+                            <div class="flex rounded-lg shadow">
+                                <button type="button" data-lang="English" class="flex-1 py-3 px-4 rounded-l-lg focus:outline-none transition-colors ${state.language === 'English' ? 'bg-teal-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}">Inglés</button>
+                                <button type="button" data-lang="Italian" class="flex-1 py-3 px-4 rounded-r-lg focus:outline-none transition-colors ${state.language === 'Italian' ? 'bg-teal-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}">Italiano</button>
+                            </div>
+                        </div>
+                        <button type="submit" id="start-button" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">Generar Flashcards</button>
+                    </form>
+                </div>
+            `;
+            
+            const form = content.querySelector('#setup-form');
+            const topicInput = content.querySelector('#topic');
+            const startButton = content.querySelector('#start-button');
+            const langButtons = content.querySelectorAll('[data-lang]');
+
+            const updateButtonState = () => {
+                startButton.disabled = !topicInput.value.trim();
+            };
+
+            topicInput.addEventListener('input', (e) => {
+                state.topic = e.target.value;
+                updateButtonState();
+            });
+
+            langButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    state.language = e.target.dataset.lang;
+                    renderSetupScreen();
+                });
+            });
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                if (state.topic.trim()) {
+                    state.screen = 'flashcards';
+                    state.isLoading = true;
+                    render();
+                    fetchAndAddCards();
+                }
+            });
+
+            updateButtonState();
+        };
+
+        const renderFlashcardScreen = () => {
+            if (state.isLoading || state.error || !state.cards[state.currentCardIndex]) {
+                const text = state.error ? state.error : (state.isLoading ? "Generando tus primeras tarjetas..." : "Buscando más tarjetas...");
+                const buttonHtml = state.error ? `<button id="reset-button" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg">Volver a empezar</button>` : '';
+                content.innerHTML = `
+                    <div class="flex flex-col justify-center items-center h-full text-center p-8">
+                        ${state.error ? `<p class="text-red-500 font-semibold mb-4">${text}</p>` : `<div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-teal-500"></div><p class="mt-4 text-gray-600">${text}</p>`}
+                        ${buttonHtml}
+                    </div>
+                `;
+                if (state.error) {
+                    content.querySelector('#reset-button').addEventListener('click', handleReset);
+                }
+                return;
+            }
+
+            const currentCard = state.cards[state.currentCardIndex];
+            const frontLang = state.language === 'English' ? 'en-US' : 'it-IT';
+            const backLang = 'es-ES';
+
+            content.innerHTML = `
+                <div class="w-full max-w-2xl mx-auto flex flex-col h-full p-4">
+                    <header class="flex justify-between items-center mb-4 w-full">
+                        <div class="flex items-center gap-4">
+                            <button id="reset-button" class="p-2 rounded-full bg-white hover:bg-gray-100 border border-gray-300 shadow-sm transition-colors" aria-label="Volver al inicio">
+                                <span class="h-6 w-6 text-gray-700">${icons.HomeIcon}</span>
+                            </button>
+                            <button id="toggle-lang-button" class="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded-lg shadow-sm transition-colors">
+                                Cambiar a ${state.language === 'English' ? 'Italiano' : 'Inglés'}
+                            </button>
+                        </div>
+                        <div class="text-lg font-semibold text-gray-600">
+                            Estudiadas: ${state.studiedCount}
+                        </div>
+                    </header>
+
+                    <div class="flex-grow flex items-center justify-center relative">
+                        <div class="flashcard-navigation absolute left-0 top-1/2 -translate-y-1/2 z-10">
+                            <button id="prev-card-button" class="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Tarjeta anterior">
+                                <span class="h-8 w-8 text-gray-700">${icons.ArrowLeftIcon}</span>
+                            </button>
+                        </div>
+
+                        <div id="flashcard" class="flashcard-container cursor-pointer" role="button" aria-label="Hacer clic para voltear la tarjeta">
+                            <div class="flashcard-inner ${state.isFlipped ? 'flipped' : ''}">
+                                <div class="flashcard-front bg-white rounded-2xl shadow-lg">
+                                    <div class="absolute top-4 left-4 text-gray-500 uppercase text-sm font-semibold">${state.language}</div>
+                                    <button id="speaker-front" class="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-colors" aria-label="Pronunciar">
+                                        <span class="h-6 w-6 text-gray-500">${icons.SpeakerIcon}</span>
+                                    </button>
+                                    <p class="text-3xl md:text-4xl text-center text-gray-800 px-10">${currentCard.source}</p>
+                                </div>
+                                <div class="flashcard-back bg-gray-800 rounded-2xl shadow-lg">
+                                    <div class="absolute top-4 left-4 text-gray-300 uppercase text-sm font-semibold">Español</div>
+                                    <button id="speaker-back" class="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-colors" aria-label="Pronunciar">
+                                        <span class="h-6 w-6 text-gray-300">${icons.SpeakerIcon}</span>
+                                    </button>
+                                    <p class="text-3xl md:text-4xl text-center text-white px-10">${currentCard.translation}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flashcard-navigation absolute right-0 top-1/2 -translate-y-1/2 z-10">
+                            <button id="next-card-button" class="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Siguiente tarjeta">
+                                <span class="h-8 w-8 text-gray-700">${icons.ArrowRightIcon}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <footer class="mt-6 grid grid-cols-2 gap-4">
+                        <button id="needs-practice-button" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl focus:outline-none focus:shadow-outline transition-transform transform hover:scale-105">
+                            Necesito práctica
+                        </button>
+                        <button id="know-it-button" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded-xl focus:outline-none focus:shadow-outline transition-transform transform hover:scale-105">
+                            Lo sé
+                        </button>
+                    </footer>
+                </div>
+            `;
+
+            content.querySelector('#flashcard').addEventListener('click', handleFlip);
+            content.querySelector('#reset-button').addEventListener('click', handleReset);
+            content.querySelector('#toggle-lang-button').addEventListener('click', toggleLanguage);
+            content.querySelector('#prev-card-button').addEventListener('click', goToPreviousCard);
+            content.querySelector('#next-card-button').addEventListener('click', goToNextCard);
+            content.querySelector('#needs-practice-button').addEventListener('click', () => handleNextCard(true));
+            content.querySelector('#know-it-button').addEventListener('click', () => handleNextCard(false));
+            content.querySelector('#speaker-front').addEventListener('click', (e) => speak(currentCard.source, frontLang, e));
+            content.querySelector('#speaker-back').addEventListener('click', (e) => speak(currentCard.translation, backLang, e));
+
+            const prevButton = content.querySelector('#prev-card-button');
+            const nextButton = content.querySelector('#next-card-button');
+            if (state.currentCardIndex === 0) prevButton.disabled = true;
+            if (state.currentCardIndex === state.cards.length - 1 && !state.isFetchingMore) nextButton.disabled = true;
+        };
+        
+        const speak = (text, lang, e) => {
+            e.stopPropagation();
+            if (!('speechSynthesis' in window)) {
+                console.error("Tu navegador no soporta la síntesis de voz.");
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang;
+            const voices = window.speechSynthesis.getVoices();
+            const voice = voices.find(v => v.lang === lang) || voices.find(v => v.lang.startsWith(lang.split('-')[0]));
+            if (voice) {
+                utterance.voice = voice;
+            } else {
+                 window.speechSynthesis.onvoiceschanged = () => {
+                     const updatedVoices = window.speechSynthesis.getVoices();
+                     utterance.voice = updatedVoices.find(v => v.lang === lang) || updatedVoices.find(v => v.lang.startsWith(lang.split('-')[0]));
+                 };
+            }
+            window.speechSynthesis.speak(utterance);
+        };
+        
+        const handleFlip = () => {
+            state.isFlipped = !state.isFlipped;
+            renderFlashcardScreen();
+        };
+
+        const handleReset = () => {
+            state = { ...state, screen: 'setup', topic: '', cards: [], currentCardIndex: 0, studiedCount: 0, error: null };
+            render();
+        };
+
+        const toggleLanguage = () => {
+            state = { ...state, language: state.language === 'English' ? 'Italian' : 'English', cards: [], studiedCount: 0, currentCardIndex: 0, isLoading: true };
+            render();
+            fetchAndAddCards();
+        };
+
+        const goToPreviousCard = () => {
+            if (state.currentCardIndex > 0) {
+                state.isFlipped = false;
+                state.currentCardIndex--;
+                renderFlashcardScreen();
+            }
+        };
+
+        const goToNextCard = () => {
+            if (state.currentCardIndex < state.cards.length - 1) {
+                state.isFlipped = false;
+                state.currentCardIndex++;
+                renderFlashcardScreen();
+            }
+        };
+        
+        const handleNextCard = (needsPractice) => {
+            state.isFlipped = false;
+            
+            setTimeout(() => {
+                if (state.cards.length === 0) return;
+
+                let newCards = [...state.cards];
+                const cardToMove = newCards[state.currentCardIndex];
+                
+                if (needsPractice) {
+                    cardToMove.level = 0;
+                    newCards.splice(state.currentCardIndex, 1);
+                    newCards.push(cardToMove);
+                } else {
+                    cardToMove.level = (cardToMove.level || 0) + 1;
+                }
+                
+                state.cards = newCards;
+                state.studiedCount++;
+                if (state.currentCardIndex + 1 < newCards.length) {
+                    state.currentCardIndex++;
+                }
+                
+                renderFlashcardScreen();
+            }, 300);
+        };
+
+        const fetchAndAddCards = async () => {
+            if (state.isFetchingMore) return;
+            state.isFetchingMore = true;
+
+            const langForPrompt = state.language === 'English' ? 'inglés' : 'italiano';
+            const extraPrompt = state.language === 'Italian' ? 'Asegúrate de que las palabras italianas estén escritas de forma que faciliten la pronunciación nativa por un sistema de texto a voz.' : '';
+            const existingWords = state.cards.map(c => c.source).join(', ');
+            const prompt = `Genera un array JSON de 10 flashcards para un hablante de español que aprende ${langForPrompt}. El tema es '${state.topic}'. Evita generar palabras o frases que ya están en esta lista: ${existingWords}. Cada objeto debe tener una clave "source" (en ${langForPrompt}) y "translation" (en español). ${extraPrompt} Responde únicamente con el array JSON.`;
+            
+            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "OBJECT", properties: { "source": { "type": "STRING" }, "translation": { "type": "STRING" } }, required: ["source", "translation"] } } } };
+            const apiKey = state.apiKey;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            
+            try {
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`Error en la API: ${response.statusText}`);
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0]) {
+                    const parsedCards = JSON.parse(result.candidates[0].content.parts[0].text);
+                    if (Array.isArray(parsedCards) && parsedCards.length > 0) {
+                        const newCards = parsedCards.map(card => ({ ...card, level: 0 }));
+                        state.cards = [...state.cards, ...newCards];
+                    } else {
+                        console.log("No se recibieron más tarjetas del API.");
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                state.error = "No se pudieron generar más flashcards. Por favor, revisa tu conexión o intenta más tarde.";
+            } finally {
+                state.isLoading = false;
+                state.isFetchingMore = false;
+                render();
+            }
+        };
+
+        const checkAndFetchMoreCards = () => {
+            if (!state.isLoading && !state.isFetchingMore && state.cards.length > 0 && (state.cards.length - state.currentCardIndex) < 5) {
+                fetchAndAddCards();
+            }
+        };
+
+        setInterval(checkAndFetchMoreCards, 2000);
+        
+        render();
+    </script>
+</body>
+</html>
