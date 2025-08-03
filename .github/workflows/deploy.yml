@@ -23,7 +23,12 @@ jobs:
 
       - name: Replace API Key
         run: |
+          echo "Contenido del archivo index.html antes de la sustitución:"
+          cat index.html
+          # El comando 'sed' para reemplazar la clave de API
           sed -i "s|REPLACE_ME_WITH_API_KEY|${{ secrets.GEMINI_API_KEY }}|g" index.html
+          echo "Contenido del archivo index.html después de la sustitución:"
+          cat index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
