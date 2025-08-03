@@ -22,11 +22,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Replace API Key
+        env:
+          API_KEY_SECRET: ${{ secrets.GEMINI_API_KEY }} # <-- Aquí pasamos el secreto a una variable de entorno
         run: |
           echo "Contenido del archivo index.html antes de la sustitución:"
           cat index.html
-          # El comando 'sed' para reemplazar la clave de API
-          sed -i "s|REPLACE_ME_WITH_API_KEY|${{ secrets.GEMINI_API_KEY }}|g" index.html
+          # Usamos la variable de entorno API_KEY_SECRET en el comando sed
+          sed -i "s|REPLACE_ME_WITH_API_KEY|${API_KEY_SECRET}|g" index.html
           echo "Contenido del archivo index.html después de la sustitución:"
           cat index.html
 
