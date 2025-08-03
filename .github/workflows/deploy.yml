@@ -14,31 +14,41 @@ jobs:
       id-token: write
 
     environment:
-        name: github-pages
-        url: ${{ steps.deployment.outputs.page_url }} # <-- Esta línea también es útil para ver la URL en las acciones
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Replace API Key (using awk)
+      - name: Prepare site directory
+        run: |
+          # Crear un directorio temporal para el sitio desplegable
+          mkdir _site
+          # Copiar el index.html original a este nuevo directorio
+          cp index.html _site/index.html
+
+      - name: Replace API Key (using awk on copied file)
         env:
+          # Pasar el secreto de GitHub a una variable de entorno
           API_KEY_SECRET: ${{ secrets.GEMINI_API_KEY }} 
         run: |
-          echo "Contenido del archivo index.html antes de la sustitución:"
-          cat index.html
-          # Usamos awk para el reemplazo. Es a menudo más robusto con cadenas.
-          awk -v API_KEY="${API_KEY_SECRET}" '{gsub(/REPLACE_ME_WITH_API_KEY/, API_KEY); print}' index.html > index.html.tmp && mv index.html.tmp index.html
-          echo "Contenido del archivo index.html después de la sustitución:"
-          cat index.html
+          echo "Contenido del archivo index.html en _site antes de la sustitución:"
+          cat _site/index.html
+          # Realizar el reemplazo en la copia del archivo dentro de _site
+          # awk es más robusto para este tipo de reemplazos
+          awk -v API_KEY="${API_KEY_SECRET}" '{gsub(/REPLACE_ME_WITH_API_KEY/, API_KEY); print}' _site/index.html > _site/index.html.tmp && mv _site/index.html.tmp _site/index.html
+          echo "Contenido del archivo index.html en _site después de la sustitución:"
+          cat _site/index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
-
+        
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          # Subir el directorio _site como el artefacto de despliegue
+          path: '_site'
 
       - name: Deploy to GitHub Pages
         id: deployment
