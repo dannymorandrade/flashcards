@@ -68,7 +68,7 @@
             studiedCount: 0,
             error: null,
             isFetchingMore: false,
-            apiKey: "REPLACE_ME_WITH_API_KEY"
+            apiKey: ""
         };
 
         const icons = {
@@ -330,7 +330,7 @@
             const prompt = `Genera un array JSON de 10 flashcards para un hablante de español que aprende ${langForPrompt}. El tema es '${state.topic}'. Evita generar palabras o frases que ya están en esta lista: ${existingWords}. Cada objeto debe tener una clave "source" (en ${langForPrompt}) y "translation" (en español). ${extraPrompt} Responde únicamente con el array JSON.`;
             
             const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "OBJECT", properties: { "source": { "type": "STRING" }, "translation": { "type": "STRING" } }, required: ["source", "translation"] } } } };
-            const apiKey = state.apiKey;
+            const apiKey = "REPLACE_ME_WITH_API_KEY";
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
             
             try {
