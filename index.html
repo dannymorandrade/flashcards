@@ -51,12 +51,12 @@
     <div id="app" class="w-full h-full md:w-3/4 lg:w-1/2 md:h-3/4 bg-slate-100 rounded-2xl shadow-2xl overflow-hidden relative">
         <div class="absolute top-0 left-0 w-full h-2 bg-teal-200"></div>
         <div id="content" class="w-full h-full p-4">
-            </div>
+            <!-- Contenido dinámico (Setup o Flashcards) se renderizará aquí -->
+        </div>
     </div>
 
     <script>
-        const app = document.getElementById('app');
-        const content = document.getElementById('content');
+        // Objeto de estado global para la aplicación
         let state = {
             screen: 'setup',
             topic: '',
@@ -68,9 +68,11 @@
             studiedCount: 0,
             error: null,
             isFetchingMore: false,
-            apiKey: ""
+            // Importante: Este marcador de posición será reemplazado por GitHub Actions
+            apiKey: "REPLACE_ME_WITH_API_KEY" 
         };
 
+        // Definición de iconos SVG para usar en el HTML
         const icons = {
             SpeakerIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>`,
             HomeIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>`,
@@ -78,8 +80,13 @@
             ArrowRightIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>`
         };
 
+        // Elementos DOM principales
+        const appElement = document.getElementById('app');
+        const contentElement = document.getElementById('content');
+
+        // Función principal de renderizado que actualiza la UI según el estado
         const render = () => {
-            content.innerHTML = '';
+            contentElement.innerHTML = ''; // Limpia el contenido anterior
             if (state.screen === 'setup') {
                 renderSetupScreen();
             } else if (state.screen === 'flashcards') {
@@ -87,8 +94,9 @@
             }
         };
 
+        // Renderiza la pantalla de configuración inicial
         const renderSetupScreen = () => {
-            content.innerHTML = `
+            contentElement.innerHTML = `
                 <div class="w-full max-w-md mx-auto flex flex-col justify-center items-center h-full p-4">
                     <h1 class="text-3xl font-bold text-gray-700 mb-4 text-center">Crea tus Flashcards</h1>
                     <p class="text-gray-600 mb-8 text-center">Ingresa un tema y elige un idioma para empezar a aprender.</p>
@@ -109,11 +117,13 @@
                 </div>
             `;
             
-            const form = content.querySelector('#setup-form');
-            const topicInput = content.querySelector('#topic');
-            const startButton = content.querySelector('#start-button');
-            const langButtons = content.querySelectorAll('[data-lang]');
+            // Asigna event listeners a los elementos de la pantalla de configuración
+            const form = contentElement.querySelector('#setup-form');
+            const topicInput = contentElement.querySelector('#topic');
+            const startButton = contentElement.querySelector('#start-button');
+            const langButtons = contentElement.querySelectorAll('[data-lang]');
 
+            // Actualiza el estado del botón "Generar Flashcards"
             const updateButtonState = () => {
                 startButton.disabled = !topicInput.value.trim();
             };
@@ -126,7 +136,7 @@
             langButtons.forEach(button => {
                 button.addEventListener('click', (e) => {
                     state.language = e.target.dataset.lang;
-                    renderSetupScreen();
+                    renderSetupScreen(); // Vuelve a renderizar para actualizar el estilo del botón de idioma
                 });
             });
 
@@ -134,27 +144,29 @@
                 e.preventDefault();
                 if (state.topic.trim()) {
                     state.screen = 'flashcards';
-                    state.isLoading = true;
-                    render();
-                    fetchAndAddCards();
+                    state.isLoading = true; // Muestra el spinner de carga
+                    render(); // Renderiza la pantalla de flashcards (con spinner)
+                    fetchAndAddCards(); // Inicia la carga de tarjetas
                 }
             });
 
-            updateButtonState();
+            updateButtonState(); // Llama al inicio para establecer el estado inicial del botón
         };
 
+        // Renderiza la pantalla principal de flashcards
         const renderFlashcardScreen = () => {
+            // Muestra mensajes de carga o error
             if (state.isLoading || state.error || !state.cards[state.currentCardIndex]) {
                 const text = state.error ? state.error : (state.isLoading ? "Generando tus primeras tarjetas..." : "Buscando más tarjetas...");
                 const buttonHtml = state.error ? `<button id="reset-button" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg">Volver a empezar</button>` : '';
-                content.innerHTML = `
+                contentElement.innerHTML = `
                     <div class="flex flex-col justify-center items-center h-full text-center p-8">
                         ${state.error ? `<p class="text-red-500 font-semibold mb-4">${text}</p>` : `<div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-teal-500"></div><p class="mt-4 text-gray-600">${text}</p>`}
                         ${buttonHtml}
                     </div>
                 `;
                 if (state.error) {
-                    content.querySelector('#reset-button').addEventListener('click', handleReset);
+                    contentElement.querySelector('#reset-button').addEventListener('click', handleReset);
                 }
                 return;
             }
@@ -163,7 +175,7 @@
             const frontLang = state.language === 'English' ? 'en-US' : 'it-IT';
             const backLang = 'es-ES';
 
-            content.innerHTML = `
+            contentElement.innerHTML = `
                 <div class="w-full max-w-2xl mx-auto flex flex-col h-full p-4">
                     <header class="flex justify-between items-center mb-4 w-full">
                         <div class="flex items-center gap-4">
@@ -180,14 +192,17 @@
                     </header>
 
                     <div class="flex-grow flex items-center justify-center relative">
+                        <!-- Botón de navegación izquierda -->
                         <div class="flashcard-navigation absolute left-0 top-1/2 -translate-y-1/2 z-10">
                             <button id="prev-card-button" class="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Tarjeta anterior">
                                 <span class="h-8 w-8 text-gray-700">${icons.ArrowLeftIcon}</span>
                             </button>
                         </div>
 
+                        <!-- Contenedor de la flashcard -->
                         <div id="flashcard" class="flashcard-container cursor-pointer" role="button" aria-label="Hacer clic para voltear la tarjeta">
                             <div class="flashcard-inner ${state.isFlipped ? 'flipped' : ''}">
+                                <!-- Cara frontal de la flashcard -->
                                 <div class="flashcard-front bg-white rounded-2xl shadow-lg">
                                     <div class="absolute top-4 left-4 text-gray-500 uppercase text-sm font-semibold">${state.language}</div>
                                     <button id="speaker-front" class="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-colors" aria-label="Pronunciar">
@@ -195,6 +210,7 @@
                                     </button>
                                     <p class="text-3xl md:text-4xl text-center text-gray-800 px-10">${currentCard.source}</p>
                                 </div>
+                                <!-- Cara trasera de la flashcard -->
                                 <div class="flashcard-back bg-gray-800 rounded-2xl shadow-lg">
                                     <div class="absolute top-4 left-4 text-gray-300 uppercase text-sm font-semibold">Español</div>
                                     <button id="speaker-back" class="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-colors" aria-label="Pronunciar">
@@ -205,6 +221,7 @@
                             </div>
                         </div>
                         
+                        <!-- Botón de navegación derecha -->
                         <div class="flashcard-navigation absolute right-0 top-1/2 -translate-y-1/2 z-10">
                             <button id="next-card-button" class="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Siguiente tarjeta">
                                 <span class="h-8 w-8 text-gray-700">${icons.ArrowRightIcon}</span>
@@ -212,6 +229,7 @@
                         </div>
                     </div>
 
+                    <!-- Botones de acción "Necesito práctica" y "Lo sé" -->
                     <footer class="mt-6 grid grid-cols-2 gap-4">
                         <button id="needs-practice-button" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl focus:outline-none focus:shadow-outline transition-transform transform hover:scale-105">
                             Necesito práctica
@@ -223,29 +241,32 @@
                 </div>
             `;
 
-            content.querySelector('#flashcard').addEventListener('click', handleFlip);
-            content.querySelector('#reset-button').addEventListener('click', handleReset);
-            content.querySelector('#toggle-lang-button').addEventListener('click', toggleLanguage);
-            content.querySelector('#prev-card-button').addEventListener('click', goToPreviousCard);
-            content.querySelector('#next-card-button').addEventListener('click', goToNextCard);
-            content.querySelector('#needs-practice-button').addEventListener('click', () => handleNextCard(true));
-            content.querySelector('#know-it-button').addEventListener('click', () => handleNextCard(false));
-            content.querySelector('#speaker-front').addEventListener('click', (e) => speak(currentCard.source, frontLang, e));
-            content.querySelector('#speaker-back').addEventListener('click', (e) => speak(currentCard.translation, backLang, e));
+            // Asigna event listeners a los elementos de la pantalla de flashcards
+            contentElement.querySelector('#flashcard').addEventListener('click', handleFlip);
+            contentElement.querySelector('#reset-button').addEventListener('click', handleReset);
+            contentElement.querySelector('#toggle-lang-button').addEventListener('click', toggleLanguage);
+            contentElement.querySelector('#prev-card-button').addEventListener('click', goToPreviousCard);
+            contentElement.querySelector('#next-card-button').addEventListener('click', goToNextCard);
+            contentElement.querySelector('#needs-practice-button').addEventListener('click', () => handleNextCard(true));
+            contentElement.querySelector('#know-it-button').addEventListener('click', () => handleNextCard(false));
+            contentElement.querySelector('#speaker-front').addEventListener('click', (e) => speak(currentCard.source, frontLang, e));
+            contentElement.querySelector('#speaker-back').addEventListener('click', (e) => speak(currentCard.translation, backLang, e));
 
-            const prevButton = content.querySelector('#prev-card-button');
-            const nextButton = content.querySelector('#next-card-button');
+            // Deshabilita los botones de navegación si no hay tarjetas anteriores/siguientes
+            const prevButton = contentElement.querySelector('#prev-card-button');
+            const nextButton = contentElement.querySelector('#next-card-button');
             if (state.currentCardIndex === 0) prevButton.disabled = true;
             if (state.currentCardIndex === state.cards.length - 1 && !state.isFetchingMore) nextButton.disabled = true;
         };
         
+        // Función para la síntesis de voz
         const speak = (text, lang, e) => {
-            e.stopPropagation();
+            e.stopPropagation(); // Evita que el clic se propague a la flashcard y la voltee
             if (!('speechSynthesis' in window)) {
                 console.error("Tu navegador no soporta la síntesis de voz.");
                 return;
             }
-            window.speechSynthesis.cancel();
+            window.speechSynthesis.cancel(); // Detiene cualquier síntesis en curso
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = lang;
             const voices = window.speechSynthesis.getVoices();
@@ -261,40 +282,46 @@
             window.speechSynthesis.speak(utterance);
         };
         
+        // Voltea la flashcard
         const handleFlip = () => {
             state.isFlipped = !state.isFlipped;
             renderFlashcardScreen();
         };
 
+        // Reinicia la aplicación a la pantalla de configuración
         const handleReset = () => {
             state = { ...state, screen: 'setup', topic: '', cards: [], currentCardIndex: 0, studiedCount: 0, error: null };
             render();
         };
 
+        // Cambia el idioma de las flashcards y reinicia el proceso
         const toggleLanguage = () => {
             state = { ...state, language: state.language === 'English' ? 'Italian' : 'English', cards: [], studiedCount: 0, currentCardIndex: 0, isLoading: true };
             render();
             fetchAndAddCards();
         };
 
+        // Navega a la tarjeta anterior
         const goToPreviousCard = () => {
             if (state.currentCardIndex > 0) {
-                state.isFlipped = false;
+                state.isFlipped = false; // Asegura que la tarjeta esté en el anverso
                 state.currentCardIndex--;
                 renderFlashcardScreen();
             }
         };
 
+        // Navega a la tarjeta siguiente
         const goToNextCard = () => {
             if (state.currentCardIndex < state.cards.length - 1) {
-                state.isFlipped = false;
+                state.isFlipped = false; // Asegura que la tarjeta esté en el anverso
                 state.currentCardIndex++;
                 renderFlashcardScreen();
             }
         };
         
+        // Maneja el avance de la tarjeta según si necesita práctica o ya la sabe
         const handleNextCard = (needsPractice) => {
-            state.isFlipped = false;
+            state.isFlipped = false; // Voltea la tarjeta al anverso antes de avanzar
             
             setTimeout(() => {
                 if (state.cards.length === 0) return;
@@ -303,68 +330,94 @@
                 const cardToMove = newCards[state.currentCardIndex];
                 
                 if (needsPractice) {
-                    cardToMove.level = 0;
-                    newCards.splice(state.currentCardIndex, 1);
-                    newCards.push(cardToMove);
+                    cardToMove.level = 0; // Reinicia el nivel si necesita práctica
+                    newCards.splice(state.currentCardIndex, 1); // Remueve la tarjeta actual
+                    newCards.push(cardToMove); // La añade al final para revisarla más tarde
                 } else {
-                    cardToMove.level = (cardToMove.level || 0) + 1;
+                    cardToMove.level = (cardToMove.level || 0) + 1; // Incrementa el nivel si la sabe
                 }
                 
                 state.cards = newCards;
-                state.studiedCount++;
+                state.studiedCount++; // Incrementa el contador de tarjetas estudiadas
+                // Avanza al siguiente índice, si no hay más, se queda en el último
                 if (state.currentCardIndex + 1 < newCards.length) {
                     state.currentCardIndex++;
                 }
                 
-                renderFlashcardScreen();
-            }, 300);
+                renderFlashcardScreen(); // Vuelve a renderizar la pantalla
+            }, 300); // Pequeño retraso para la animación de volteo
         };
 
+        // Función para llamar a la API de Gemini y obtener más flashcards
         const fetchAndAddCards = async () => {
-            if (state.isFetchingMore) return;
+            if (state.isFetchingMore) return; // Evita llamadas duplicadas
             state.isFetchingMore = true;
 
             const langForPrompt = state.language === 'English' ? 'inglés' : 'italiano';
             const extraPrompt = state.language === 'Italian' ? 'Asegúrate de que las palabras italianas estén escritas de forma que faciliten la pronunciación nativa por un sistema de texto a voz.' : '';
-            const existingWords = state.cards.map(c => c.source).join(', ');
+            const existingWords = state.cards.map(c => c.source).join(', '); // Evita duplicados
             const prompt = `Genera un array JSON de 10 flashcards para un hablante de español que aprende ${langForPrompt}. El tema es '${state.topic}'. Evita generar palabras o frases que ya están en esta lista: ${existingWords}. Cada objeto debe tener una clave "source" (en ${langForPrompt}) y "translation" (en español). ${extraPrompt} Responde únicamente con el array JSON.`;
             
             const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "OBJECT", properties: { "source": { "type": "STRING" }, "translation": { "type": "STRING" } }, required: ["source", "translation"] } } } };
-            const apiKey = "REPLACE_ME_WITH_API_KEY";
+            const apiKey = state.apiKey; // Usa la clave de API del estado
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
             
             try {
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error(`Error en la API: ${response.statusText}`);
+                
+                if (!response.ok) {
+                    // Si la respuesta no es OK, intenta obtener más detalles del error
+                    console.error("API Response (not OK):", response);
+                    let errorDetails = `Error en la API: ${response.status} ${response.statusText || 'Error Desconocido'}`;
+                    try {
+                        const errorData = await response.json();
+                        console.error("Detalles del Error de la API:", errorData);
+                        if (errorData.error && errorData.error.message) {
+                            errorDetails += ` - ${errorData.error.message}`;
+                        }
+                    } catch (jsonError) {
+                        console.error("No se pudo parsear el JSON del error:", jsonError);
+                        errorDetails += " (No se pudo obtener más detalle del error)";
+                    }
+                    throw new Error(errorDetails);
+                }
+                
                 const result = await response.json();
                 
                 if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0]) {
                     const parsedCards = JSON.parse(result.candidates[0].content.parts[0].text);
                     if (Array.isArray(parsedCards) && parsedCards.length > 0) {
                         const newCards = parsedCards.map(card => ({ ...card, level: 0 }));
-                        state.cards = [...state.cards, ...newCards];
+                        state.cards = [...state.cards, ...newCards]; // Añade las nuevas tarjetas al final
                     } else {
                         console.log("No se recibieron más tarjetas del API.");
                     }
+                } else {
+                    console.error("Estructura de respuesta inesperada de la API:", result);
+                    throw new Error("Respuesta inesperada de la API. Intenta de nuevo.");
                 }
             } catch (err) {
-                console.error(err);
-                state.error = "No se pudieron generar más flashcards. Por favor, revisa tu conexión o intenta más tarde.";
+                console.error("Error durante fetchAndAddCards:", err);
+                state.error = `No se pudieron generar más flashcards. ${err.message || 'Por favor, revisa tu conexión o intenta más tarde.'}`;
             } finally {
                 state.isLoading = false;
                 state.isFetchingMore = false;
-                render();
+                render(); // Vuelve a renderizar para actualizar el estado de carga/error
             }
         };
 
+        // Verifica periódicamente si se necesitan cargar más tarjetas
         const checkAndFetchMoreCards = () => {
+            // Carga más tarjetas si quedan pocas por estudiar y no se está cargando ya
             if (!state.isLoading && !state.isFetchingMore && state.cards.length > 0 && (state.cards.length - state.currentCardIndex) < 5) {
                 fetchAndAddCards();
             }
         };
 
-        setInterval(checkAndFetchMoreCards, 2000);
-        
+        // Inicia el chequeo periódico para cargar más tarjetas
+        setInterval(checkAndFetchMoreCards, 2000); // Cada 2 segundos
+
+        // Renderiza la aplicación al cargar la página
         render();
     </script>
 </body>
