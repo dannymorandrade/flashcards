@@ -21,12 +21,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Replace API Key
+      - name: Replace API Key (using awk)
+        env:
+          API_KEY_SECRET: ${{ secrets.GEMINI_API_KEY }} 
         run: |
           echo "Contenido del archivo index.html antes de la sustitución:"
           cat index.html
-          # El comando 'sed' para reemplazar la clave de API
-          sed -i "s|REPLACE_ME_WITH_API_KEY|${{ secrets.GEMINI_API_KEY }}|g" index.html
+          # Usamos awk para el reemplazo. Es a menudo más robusto con cadenas.
+          awk -v API_KEY="${API_KEY_SECRET}" '{gsub(/REPLACE_ME_WITH_API_KEY/, API_KEY); print}' index.html > index.html.tmp && mv index.html.tmp index.html
           echo "Contenido del archivo index.html después de la sustitución:"
           cat index.html
 
