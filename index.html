@@ -98,6 +98,21 @@
         const appElement = document.getElementById('app');
         const contentElement = document.getElementById('content');
 
+        // --- Manejo de la síntesis de voz ---
+        let availableVoices = [];
+
+        // Esta función se llama cuando las voces cambian (ej. al cargar el navegador)
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                availableVoices = window.speechSynthesis.getVoices();
+                console.log("Voces de síntesis de voz actualizadas:", availableVoices.map(v => `${v.name} (${v.lang})`));
+            };
+            // Intenta obtener las voces inmediatamente por si ya están cargadas
+            availableVoices = window.speechSynthesis.getVoices();
+        }
+        // --- Fin del manejo de la síntesis de voz ---
+
+
         // Función principal de renderizado que actualiza la UI según el estado
         const render = () => {
             contentElement.innerHTML = ''; // Limpia el contenido anterior
@@ -277,16 +292,19 @@
             window.speechSynthesis.cancel(); // Detiene cualquier síntesis en curso
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = lang;
-            const voices = window.speechSynthesis.getVoices();
-            const voice = voices.find(v => v.lang === lang) || voices.find(v => v.lang.startsWith(lang.split('-')[0]));
-            if (voice) {
-                utterance.voice = voice;
+
+            // Intenta encontrar la voz más adecuada para el idioma
+            let selectedVoice = availableVoices.find(v => v.lang === lang && v.localService) || // Preferir voces locales si existen
+                               availableVoices.find(v => v.lang === lang) || // Luego, cualquier voz con el código de idioma exacto
+                               availableVoices.find(v => v.lang.startsWith(lang.split('-')[0])); // Finalmente, cualquier voz que empiece con el prefijo del idioma
+
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+                console.log("Usando voz:", selectedVoice.name, selectedVoice.lang);
             } else {
-                 window.speechSynthesis.onvoiceschanged = () => {
-                     const updatedVoices = window.speechSynthesis.getVoices();
-                     utterance.voice = updatedVoices.find(v => v.lang === lang) || updatedVoices.find(v => v.lang.startsWith(lang.split('-')[0]));
-                 };
+                console.warn(`No se encontró una voz específica para ${lang}. Usando la voz por defecto del navegador.`);
             }
+            
             window.speechSynthesis.speak(utterance);
         };
         
