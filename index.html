@@ -9,27 +9,22 @@
         body, html {
             height: 100%;
             margin: 0;
-            /* Asegura que el body no tenga overflow oculto */
             overflow-x: hidden; /* Previene scroll horizontal */
         }
         #app {
-            /* Aseguramos que #app ocupe al menos toda la altura de la pantalla */
-            min-height: 100vh; 
-            /* Convertimos #app en un contenedor flex para distribuir el espacio verticalmente */
+            min-height: 100vh; /* Aseguramos que #app ocupe al menos toda la altura de la pantalla */
             display: flex;
             flex-direction: column;
-            /* Distribuye el espacio entre los elementos (header, content, footer) */
-            justify-content: space-between; 
+            justify-content: space-between; /* Distribuye el espacio entre header, content y footer */
             align-items: center; /* Centra el contenido horizontalmente */
+            /* Eliminado: md:h-3/4 de las clases HTML, ya controlado por min-height en CSS */
         }
         #content {
-            /* Permite el desplazamiento vertical si el contenido excede la altura disponible */
-            overflow-y: auto;
-            /* Permite que #content crezca y ocupe el espacio disponible en el flex container */
-            flex-grow: 1; 
-            /* Asegura que el contenido ocupe el espacio disponible dentro de #app */
+            overflow-y: auto; /* Permite el desplazamiento vertical si el contenido excede la altura disponible */
+            flex-grow: 1; /* Permite que #content crezca y ocupe el espacio disponible */
             height: auto; /* Permitir que la altura se ajuste al contenido */
-            max-height: 100%; /* Limitar la altura máxima si es necesario, pero flex-grow suele ser suficiente */
+            max-height: 100%; /* Limitar la altura máxima si es necesario */
+            /* Eliminado: h-full de las clases HTML, ya controlado por flex-grow en CSS */
         }
         .flashcard-container {
             width: 100%;
@@ -68,9 +63,9 @@
     </style>
 </head>
 <body class="bg-teal-50 font-sans h-screen flex items-center justify-center">
-    <div id="app" class="w-full h-full md:w-3/4 lg:w-1/2 md:h-3/4 bg-slate-100 rounded-2xl shadow-2xl relative">
+    <div id="app" class="w-full md:w-3/4 lg:w-1/2 bg-slate-100 rounded-2xl shadow-2xl relative">
         <div class="absolute top-0 left-0 w-full h-2 bg-teal-200"></div>
-        <div id="content" class="w-full h-full p-4">
+        <div id="content" class="w-full p-4 pb-4">
             </div>
     </div>
 
@@ -92,7 +87,6 @@
         };
 
         // Definición de iconos SVG como cadenas de texto
-        // CORRECCIÓN: Cambiado strokeWidth={2} a stroke-width="2"
         const icons = {
             SpeakerIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>`,
             HomeIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>`,
@@ -200,7 +194,7 @@
                     <header class="flex justify-between items-center mb-4 w-full">
                         <div class="flex items-center gap-4">
                             <button id="reset-button" class="p-2 rounded-full bg-white hover:bg-gray-100 border border-gray-300 shadow-sm transition-colors" aria-label="Volver al inicio">
-                                <div class="h-6 w-6 text-gray-700 bg-blue-200 flex items-center justify-center">${icons.HomeIcon}</div>
+                                <div class="h-6 w-6 text-gray-700 flex items-center justify-center">${icons.HomeIcon}</div>
                             </button>
                             <button id="toggle-lang-button" class="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded-lg shadow-sm transition-colors">
                                 Cambiar a ${state.language === 'English' ? 'Italiano' : 'Inglés'}
@@ -214,7 +208,7 @@
                     <div class="flex-grow flex items-center justify-center relative">
                         <div class="flashcard-navigation absolute left-0 top-1/2 -translate-y-1/2 z-10">
                             <button id="prev-card-button" class="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Tarjeta anterior">
-                                <div class="h-8 w-8 text-gray-700 bg-blue-200 flex items-center justify-center">${icons.ArrowLeftIcon}</div>
+                                <div class="h-8 w-8 text-gray-700 flex items-center justify-center">${icons.ArrowLeftIcon}</div>
                             </button>
                         </div>
 
@@ -223,14 +217,14 @@
                                 <div class="flashcard-front bg-white rounded-2xl shadow-lg">
                                     <div class="absolute top-4 left-4 text-gray-500 uppercase text-sm font-semibold">${state.language}</div>
                                     <button id="speaker-front" class="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-colors" aria-label="Pronunciar">
-                                        <div class="h-6 w-6 text-gray-500 bg-blue-200 flex items-center justify-center">${icons.SpeakerIcon}</div>
+                                        <div class="h-6 w-6 text-gray-500 flex items-center justify-center">${icons.SpeakerIcon}</div>
                                     </button>
                                     <p class="text-3xl md:text-4xl text-center text-gray-800 px-10">${currentCard.source}</p>
                                 </div>
                                 <div class="flashcard-back bg-gray-800 rounded-2xl shadow-lg">
                                     <div class="absolute top-4 left-4 text-gray-300 uppercase text-sm font-semibold">Español</div>
                                     <button id="speaker-back" class="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-colors" aria-label="Pronunciar">
-                                        <div class="h-6 w-6 text-gray-300 bg-blue-200 flex items-center justify-center">${icons.SpeakerIcon}</div>
+                                        <div class="h-6 w-6 text-gray-300 flex items-center justify-center">${icons.SpeakerIcon}</div>
                                     </button>
                                     <p class="text-3xl md:text-4xl text-center text-white px-10">${currentCard.translation}</p>
                                 </div>
@@ -239,12 +233,12 @@
                         
                         <div class="flashcard-navigation absolute right-0 top-1/2 -translate-y-1/2 z-10">
                             <button id="next-card-button" class="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Siguiente tarjeta">
-                                <div class="h-8 w-8 text-gray-700 bg-blue-200 flex items-center justify-center">${icons.ArrowRightIcon}</div>
+                                <div class="h-8 w-8 text-gray-700 flex items-center justify-center">${icons.ArrowRightIcon}</div>
                             </button>
                         </div>
                     </div>
 
-                    <footer class="mt-6 grid grid-cols-2 gap-4">
+                    <footer class="mt-4 grid grid-cols-2 gap-4">
                         <button id="needs-practice-button" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl focus:outline-none focus:shadow-outline transition-transform transform hover:scale-105">
                             Necesito práctica
                         </button>
