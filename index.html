@@ -72,7 +72,7 @@
             apiKey: "REPLACE_ME_WITH_API_KEY" 
         };
 
-        // Definición de iconos SVG para usar en el HTML
+        // Definición de iconos SVG como cadenas de texto
         const icons = {
             SpeakerIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>`,
             HomeIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>`,
@@ -180,7 +180,7 @@
                     <header class="flex justify-between items-center mb-4 w-full">
                         <div class="flex items-center gap-4">
                             <button id="reset-button" class="p-2 rounded-full bg-white hover:bg-gray-100 border border-gray-300 shadow-sm transition-colors" aria-label="Volver al inicio">
-                                <span class="h-6 w-6 text-gray-700">${icons.HomeIcon}</span>
+                                <span id="home-icon" class="h-6 w-6 text-gray-700"></span>
                             </button>
                             <button id="toggle-lang-button" class="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded-lg shadow-sm transition-colors">
                                 Cambiar a ${state.language === 'English' ? 'Italiano' : 'Inglés'}
@@ -195,7 +195,7 @@
                         <!-- Botón de navegación izquierda -->
                         <div class="flashcard-navigation absolute left-0 top-1/2 -translate-y-1/2 z-10">
                             <button id="prev-card-button" class="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Tarjeta anterior">
-                                <span class="h-8 w-8 text-gray-700">${icons.ArrowLeftIcon}</span>
+                                <span id="arrow-left-icon" class="h-8 w-8 text-gray-700"></span>
                             </button>
                         </div>
 
@@ -206,7 +206,7 @@
                                 <div class="flashcard-front bg-white rounded-2xl shadow-lg">
                                     <div class="absolute top-4 left-4 text-gray-500 uppercase text-sm font-semibold">${state.language}</div>
                                     <button id="speaker-front" class="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-colors" aria-label="Pronunciar">
-                                        <span class="h-6 w-6 text-gray-500">${icons.SpeakerIcon}</span>
+                                        <span id="speaker-icon-front" class="h-6 w-6 text-gray-500"></span>
                                     </button>
                                     <p class="text-3xl md:text-4xl text-center text-gray-800 px-10">${currentCard.source}</p>
                                 </div>
@@ -214,7 +214,7 @@
                                 <div class="flashcard-back bg-gray-800 rounded-2xl shadow-lg">
                                     <div class="absolute top-4 left-4 text-gray-300 uppercase text-sm font-semibold">Español</div>
                                     <button id="speaker-back" class="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-colors" aria-label="Pronunciar">
-                                        <span class="h-6 w-6 text-gray-300">${icons.SpeakerIcon}</span>
+                                        <span id="speaker-icon-back" class="h-6 w-6 text-gray-300"></span>
                                     </button>
                                     <p class="text-3xl md:text-4xl text-center text-white px-10">${currentCard.translation}</p>
                                 </div>
@@ -224,7 +224,7 @@
                         <!-- Botón de navegación derecha -->
                         <div class="flashcard-navigation absolute right-0 top-1/2 -translate-y-1/2 z-10">
                             <button id="next-card-button" class="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Siguiente tarjeta">
-                                <span class="h-8 w-8 text-gray-700">${icons.ArrowRightIcon}</span>
+                                <span id="arrow-right-icon" class="h-8 w-8 text-gray-700"></span>
                             </button>
                         </div>
                     </div>
@@ -251,6 +251,14 @@
             contentElement.querySelector('#know-it-button').addEventListener('click', () => handleNextCard(false));
             contentElement.querySelector('#speaker-front').addEventListener('click', (e) => speak(currentCard.source, frontLang, e));
             contentElement.querySelector('#speaker-back').addEventListener('click', (e) => speak(currentCard.translation, backLang, e));
+
+            // Inyecta los SVG directamente en los spans
+            contentElement.querySelector('#home-icon').innerHTML = icons.HomeIcon;
+            contentElement.querySelector('#arrow-left-icon').innerHTML = icons.ArrowLeftIcon;
+            contentElement.querySelector('#arrow-right-icon').innerHTML = icons.ArrowRightIcon;
+            contentElement.querySelector('#speaker-icon-front').innerHTML = icons.SpeakerIcon;
+            contentElement.querySelector('#speaker-icon-back').innerHTML = icons.SpeakerIcon;
+
 
             // Deshabilita los botones de navegación si no hay tarjetas anteriores/siguientes
             const prevButton = contentElement.querySelector('#prev-card-button');
