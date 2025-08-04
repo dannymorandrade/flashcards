@@ -6,25 +6,30 @@
     <title>Aplicación de Flashcards</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body, html, #app {
+        body, html {
             height: 100%;
             margin: 0;
-            /* Eliminar overflow-hidden del body si lo tuviera, para que #app pueda scroll */
+            /* Asegura que el body no tenga overflow oculto */
+            overflow-x: hidden; /* Previene scroll horizontal */
         }
         #app {
-            /* Eliminado overflow-hidden de aquí para permitir que el contenido interno scrollee si es necesario */
-            /* Aseguramos que #app sea un contenedor flex para distribuir el espacio */
+            /* Aseguramos que #app ocupe al menos toda la altura de la pantalla */
+            min-height: 100vh; 
+            /* Convertimos #app en un contenedor flex para distribuir el espacio verticalmente */
             display: flex;
             flex-direction: column;
-            justify-content: center; /* Centra el contenido verticalmente si hay espacio */
+            /* Distribuye el espacio entre los elementos (header, content, footer) */
+            justify-content: space-between; 
             align-items: center; /* Centra el contenido horizontalmente */
         }
         #content {
-            /* Permitir desplazamiento vertical si el contenido excede la altura disponible */
+            /* Permite el desplazamiento vertical si el contenido excede la altura disponible */
             overflow-y: auto;
-            /* Asegurar que el contenido ocupe el espacio disponible dentro de #app */
-            flex-grow: 1; /* Permite que #content crezca y ocupe el espacio */
-            height: 100%; /* Asegura que tome la altura disponible del flex-grow */
+            /* Permite que #content crezca y ocupe el espacio disponible en el flex container */
+            flex-grow: 1; 
+            /* Asegura que el contenido ocupe el espacio disponible dentro de #app */
+            height: auto; /* Permitir que la altura se ajuste al contenido */
+            max-height: 100%; /* Limitar la altura máxima si es necesario, pero flex-grow suele ser suficiente */
         }
         .flashcard-container {
             width: 100%;
@@ -195,7 +200,7 @@
                     <header class="flex justify-between items-center mb-4 w-full">
                         <div class="flex items-center gap-4">
                             <button id="reset-button" class="p-2 rounded-full bg-white hover:bg-gray-100 border border-gray-300 shadow-sm transition-colors" aria-label="Volver al inicio">
-                                <span class="h-6 w-6 text-gray-700">${icons.HomeIcon}</span>
+                                <div class="h-6 w-6 text-gray-700 bg-blue-200 flex items-center justify-center">${icons.HomeIcon}</div>
                             </button>
                             <button id="toggle-lang-button" class="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded-lg shadow-sm transition-colors">
                                 Cambiar a ${state.language === 'English' ? 'Italiano' : 'Inglés'}
@@ -209,7 +214,7 @@
                     <div class="flex-grow flex items-center justify-center relative">
                         <div class="flashcard-navigation absolute left-0 top-1/2 -translate-y-1/2 z-10">
                             <button id="prev-card-button" class="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Tarjeta anterior">
-                                <span class="h-8 w-8 text-gray-700">${icons.ArrowLeftIcon}</span>
+                                <div class="h-8 w-8 text-gray-700 bg-blue-200 flex items-center justify-center">${icons.ArrowLeftIcon}</div>
                             </button>
                         </div>
 
@@ -218,14 +223,14 @@
                                 <div class="flashcard-front bg-white rounded-2xl shadow-lg">
                                     <div class="absolute top-4 left-4 text-gray-500 uppercase text-sm font-semibold">${state.language}</div>
                                     <button id="speaker-front" class="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-colors" aria-label="Pronunciar">
-                                        <span class="h-6 w-6 text-gray-500">${icons.SpeakerIcon}</span>
+                                        <div class="h-6 w-6 text-gray-500 bg-blue-200 flex items-center justify-center">${icons.SpeakerIcon}</div>
                                     </button>
                                     <p class="text-3xl md:text-4xl text-center text-gray-800 px-10">${currentCard.source}</p>
                                 </div>
                                 <div class="flashcard-back bg-gray-800 rounded-2xl shadow-lg">
                                     <div class="absolute top-4 left-4 text-gray-300 uppercase text-sm font-semibold">Español</div>
                                     <button id="speaker-back" class="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-colors" aria-label="Pronunciar">
-                                        <span class="h-6 w-6 text-gray-300">${icons.SpeakerIcon}</span>
+                                        <div class="h-6 w-6 text-gray-300 bg-blue-200 flex items-center justify-center">${icons.SpeakerIcon}</div>
                                     </button>
                                     <p class="text-3xl md:text-4xl text-center text-white px-10">${currentCard.translation}</p>
                                 </div>
@@ -234,7 +239,7 @@
                         
                         <div class="flashcard-navigation absolute right-0 top-1/2 -translate-y-1/2 z-10">
                             <button id="next-card-button" class="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Siguiente tarjeta">
-                                <span class="h-8 w-8 text-gray-700">${icons.ArrowRightIcon}</span>
+                                <div class="h-8 w-8 text-gray-700 bg-blue-200 flex items-center justify-center">${icons.ArrowRightIcon}</div>
                             </button>
                         </div>
                     </div>
