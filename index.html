@@ -180,7 +180,7 @@
                     <header class="flex justify-between items-center mb-4 w-full">
                         <div class="flex items-center gap-4">
                             <button id="reset-button" class="p-2 rounded-full bg-white hover:bg-gray-100 border border-gray-300 shadow-sm transition-colors" aria-label="Volver al inicio">
-                                <span class="h-6 w-6 text-gray-700 border border-red-500 flex items-center justify-center">${icons.HomeIcon}</span>
+                                <span class="h-6 w-6 text-gray-700">${icons.HomeIcon}</span>
                             </button>
                             <button id="toggle-lang-button" class="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded-lg shadow-sm transition-colors">
                                 Cambiar a ${state.language === 'English' ? 'Italiano' : 'Inglés'}
@@ -194,7 +194,7 @@
                     <div class="flex-grow flex items-center justify-center relative">
                         <div class="flashcard-navigation absolute left-0 top-1/2 -translate-y-1/2 z-10">
                             <button id="prev-card-button" class="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Tarjeta anterior">
-                                <span class="h-8 w-8 text-gray-700 border border-red-500 flex items-center justify-center">${icons.ArrowLeftIcon}</span>
+                                <span class="h-8 w-8 text-gray-700">${icons.ArrowLeftIcon}</span>
                             </button>
                         </div>
 
@@ -203,14 +203,14 @@
                                 <div class="flashcard-front bg-white rounded-2xl shadow-lg">
                                     <div class="absolute top-4 left-4 text-gray-500 uppercase text-sm font-semibold">${state.language}</div>
                                     <button id="speaker-front" class="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-colors" aria-label="Pronunciar">
-                                        <span class="h-6 w-6 text-gray-500 border border-red-500 flex items-center justify-center">${icons.SpeakerIcon}</span>
+                                        <span class="h-6 w-6 text-gray-500">${icons.SpeakerIcon}</span>
                                     </button>
                                     <p class="text-3xl md:text-4xl text-center text-gray-800 px-10">${currentCard.source}</p>
                                 </div>
                                 <div class="flashcard-back bg-gray-800 rounded-2xl shadow-lg">
                                     <div class="absolute top-4 left-4 text-gray-300 uppercase text-sm font-semibold">Español</div>
                                     <button id="speaker-back" class="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-colors" aria-label="Pronunciar">
-                                        <span class="h-6 w-6 text-gray-300 border border-red-500 flex items-center justify-center">${icons.SpeakerIcon}</span>
+                                        <span class="h-6 w-6 text-gray-300">${icons.SpeakerIcon}</span>
                                     </button>
                                     <p class="text-3xl md:text-4xl text-center text-white px-10">${currentCard.translation}</p>
                                 </div>
@@ -219,7 +219,7 @@
                         
                         <div class="flashcard-navigation absolute right-0 top-1/2 -translate-y-1/2 z-10">
                             <button id="next-card-button" class="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Siguiente tarjeta">
-                                <span class="h-8 w-8 text-gray-700 border border-red-500 flex items-center justify-center">${icons.ArrowRightIcon}</span>
+                                <span class="h-8 w-8 text-gray-700">${icons.ArrowRightIcon}</span>
                             </button>
                         </div>
                     </div>
